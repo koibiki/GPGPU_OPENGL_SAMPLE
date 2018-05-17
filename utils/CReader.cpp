@@ -4,9 +4,9 @@
 #include "utils/CReader.h"
 
 char* CReader::textFileRead(char *chFileName) {
-    if (chFileName != NULL) {
+    if (chFileName != nullptr) {
         _fp = fopen(chFileName, "rt");
-        if (_fp != NULL) {
+        if (_fp != nullptr) {
             fseek(_fp, 0, SEEK_END);
             _count = ftell(_fp);
             rewind(_fp);
@@ -23,6 +23,6 @@ char* CReader::textFileRead(char *chFileName) {
 
 
 void CReader::init() {
-    _content = NULL;
+    _content = nullptr;
     _count = 0;
 }
