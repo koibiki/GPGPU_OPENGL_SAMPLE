@@ -1,7 +1,7 @@
 //
 // Created by chengli on 18-5-16.
 //
-#include "CReader.h"
+#include "utils/CReader.h"
 
 char* CReader::textFileRead(char *chFileName) {
     if (chFileName != NULL) {
@@ -22,7 +22,7 @@ char* CReader::textFileRead(char *chFileName) {
 }
 
 
-void CReader::init(void) {
+void CReader::init() {
     _content = NULL;
     _count = 0;
 }

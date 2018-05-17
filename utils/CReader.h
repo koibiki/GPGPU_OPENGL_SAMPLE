@@ -13,10 +13,10 @@ class CReader{
 public:
     CReader(){init();}
 
-    char * textFileRead(char  * chFileName);
+    char* textFileRead(char *chFileName);
 
 private:
-    void init(void);
+    void init();
     FILE *_fp;
     char  * _content;
     int _count;

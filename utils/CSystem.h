@@ -26,5 +26,4 @@ public:
 
 };
 
-
 #endif //GPGPU_CSYSTEM_H

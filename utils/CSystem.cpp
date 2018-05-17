@@ -2,7 +2,7 @@
 // Created by chengli on 18-5-16.
 //
 
-#include "CSystem.h"
+#include "utils/CSystem.h"
 
 void CSystem::allocate(unsigned int unRows, unsigned int unCols, float ** & aatArray) {
     aatArray = new float *[unRows];
