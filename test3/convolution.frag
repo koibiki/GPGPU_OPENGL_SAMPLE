@@ -9,6 +9,7 @@ void main(void) {
 	//get the current texture location
 	vec2 pos = gl_TexCoord[0].st;
 
+
 	vec4 fSum = vec4(0.0, 0.0, 0.0, 0.0);		//Sum of the neighborhood.
 	vec4 fTotal = vec4(0.0, 0.0, 0.0, 0.0);		//NoPoints in the neighborhood.
 	vec4 vec4Result = vec4(0.0, 0.0, 0.0, 0.0);	//Output vector to replace the current texture.
@@ -22,6 +23,5 @@ void main(void) {
 			}
 		}
 	vec4Result = fSum / fTotal;
-
 	gl_FragColor = vec4Result;
 }
