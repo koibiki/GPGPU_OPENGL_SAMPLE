@@ -8,8 +8,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#define WIDTH    1024    //data block width
-#define HEIGHT    1024    //data block height
+#define WIDTH    16    //data block width
+#define HEIGHT    16    //data block height
 #define MASK_RADIUS    2    //Mask radius
 
 using namespace std;
@@ -25,7 +25,7 @@ void createTextures(void);
 
 void setupTexture(const GLuint texID);
 
-void performComputation(void);
+void performComputation(const GLuint texID);
 
 void transferFromTexture(float *data);
 
@@ -64,10 +64,11 @@ int main(int argc, char **argv) {
     unsigned unNoData = 4 * unSize;        //total number of Data
     pfInput = new float[unNoData];
     float *pfOutput = new float[unNoData];
-    for (unsigned i = 0; i < unNoData; i++) pfInput[i] = i;
+    for (unsigned i = 0; i < unNoData; i++) pfInput[i] = i + 1.234d;
 
-    Mat img = imread("../test4/airplane.jpg", CV_LOAD_IMAGE_UNCHANGED);
-
+    for (int i = 0; i < unNoData; i++) {
+        cout << "input:" << pfInput[i] << endl;
+    }
 
     // create variables for GL
     textureParameters.texTarget = GL_TEXTURE_RECTANGLE_ARB;
@@ -87,30 +88,21 @@ int main(int argc, char **argv) {
     char f_clean[] = "../test3/clean.frag";
     textureParameters.shader_source = reader.textFileRead(f_clean);
     initGLSL();
-    performComputation();
+    performComputation(xTexID);
 
-    char f_clean2[] = "../test3/clean.frag";
-    textureParameters.shader_source = reader.textFileRead(f_clean2);
-    initGLSL();
-    performComputation();
     // perform computation
-    char f_convolution[] = "../test3/convolution.frag";
-    textureParameters.shader_source = reader.textFileRead(f_convolution);
-    initGLSL();
-    performComputation();
+//    char f_convolution[] = "../test3/passthrough.frag";
+//    textureParameters.shader_source = reader.textFileRead(f_convolution);
+//    initGLSL();
+//    performComputation();
 
-    char f_convolution2[] = "../test3/convolution.frag";
-    textureParameters.shader_source = reader.textFileRead(f_convolution2);
-    initGLSL();
-    performComputation();
-
-    char f_convolution3[] = "../test3/convolution.frag";
-    textureParameters.shader_source = reader.textFileRead(f_convolution3);
-    initGLSL();
-    performComputation();
 
     // get GPU results
     transferFromTexture(pfOutput);
+
+    for (int i = 0; i < unNoData; i++) {
+        cout << "input:" << pfInput[i] << " output:" << pfOutput[i] << endl;
+    }
 
     // clean up
     glDetachShader(glslProgram, fragmentShader);
@@ -173,7 +165,7 @@ void initGLSL() {
     glLinkProgram(glslProgram);
 
     // Get location of the uniform variable
-    radiusParam = glGetUniformLocation(glslProgram, "fRadius");
+//    radiusParam = glGetUniformLocation(glslProgram, "fRadius");
 }
 
 /**
@@ -185,8 +177,8 @@ void createTextures() {
     glGenTextures(1, &yTexID);
     glGenTextures(1, &xTexID);
     // set up textures
-    setupTexture(xTexID);
     setupTexture(yTexID);
+    setupTexture(xTexID);
     transferToTexture(pfInput, xTexID);
     // set texenv mode
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -208,10 +200,12 @@ void setupTexture(const GLuint texID) {
                  textureParameters.texFormat, GL_FLOAT, nullptr);
 }
 
-void performComputation() {
+void performComputation(const GLuint texID) {
     // attach output texture to FBO
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, textureParameters.texTarget, yTexID, 0);
-
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, textureParameters.texTarget, texID, 0);
+    glTexImage2D(textureParameters.texTarget, 0, textureParameters.texInternalFormat, unWidth, unHeight, 0,
+                 textureParameters.texFormat, GL_FLOAT, pfInput);
     // enable GLSL program
     glUseProgram(glslProgram);
     // enable the read-only texture x
@@ -257,15 +251,10 @@ void transferFromTexture(float *data) {
  * Transfers data to texture. Notice the difference between ATI and NVIDIA.
  */
 void transferToTexture(float *data, GLuint texID) {
-    // version (a): HW-accelerated on NVIDIA
     // 绑定 为帧缓存， 以后的着色器操作均会在此纹理上进行
     glBindTexture(textureParameters.texTarget, texID);
     glTexSubImage2D(textureParameters.texTarget, 0, 0, 0, unWidth, unHeight, textureParameters.texFormat, GL_FLOAT,
                     data);
-    // version (b): HW-accelerated on ATI
-//	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, textureParameters.texTarget, texID, 0);
-//	glDrawBuffer(GL_COLOR_ATTACHMENT0_EXT);
-//	glRasterPos2i(0,0);
-//	glDrawPixels(unWidth,unHeight,textureParameters.texFormat,GL_FLOAT,data);
-//	glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, textureParameters.texTarget, 0, 0);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, textureParameters.texTarget, texID, 0);
+
 }
