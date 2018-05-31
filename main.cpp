@@ -1,80 +1,48 @@
-#include <iostream>
-#include "utils/CTimer.h"
-#include "utils/CSystem.h"
-
-#define WIDTH 1024
-#define HEIGHT 1024
-#define CHANNEL 4
-#define RADIUS 2
+#include<iostream>
+#include<vector>
+#include<set>
+#include<string.h>
+#include<algorithm>
 
 using namespace std;
+struct student{
+    char name[10];
+    int score;
+    int age;
+};
 
-int main() {
-    std::cout << "Hello, World!" << std::endl;
-    int nState = EXIT_SUCCESS;
-    int unWidth = (int) WIDTH;
-    int unHeight = (int) HEIGHT;
-    int unChannel = (int) CHANNEL;
-    int unRadius = (int) RADIUS;
-
-
-    float ***fx;
-    int unData = 0;
-
-    CSystem cSystem;
-
-
-    cSystem.allocate(unHeight, unWidth, unChannel, fx);
-    for (int i = 0; i < unHeight; i++) {
-        for (int j = 0; j < unWidth; j++) {
-            for (int k = 0; k < unChannel; k++) {
-                fx[k][j][i] = (float) unData;
-                unData++;
-            }
-        }
+bool comp(const student &a, const student &b){
+    if (a.score > b.score)
+        return true;
+    else if (a.score == b.score  && a.age > b.age)
+        return true;
+    else
+        return false;
+}
+int main(){
+    vector<student> vectorStudents;
+    int n = 6;
+    while (n--){
+        student oneStudent;
+        string name;
+        int score;
+        int age;
+        cin >> name >> score>>age;
+        strcpy(oneStudent.name, name.c_str());
+        oneStudent.score = score;
+        oneStudent.age = age;
+        vectorStudents.push_back(oneStudent);
     }
-
-    float ***fy;
-    cSystem.allocate(unHeight, unWidth, unChannel, fy);
-    for (int i = 0; i < unHeight; i++) {
-        for (int j = 0; j < unWidth; j++) {
-            for (int k = 0; k < unChannel; k++) {
-                fy[k][j][i] = 0.0f;
-            }
-        }
+    cout << "===========排序前================" << endl;
+    for (vector<student>::iterator it = vectorStudents.begin(); it != vectorStudents.end(); it++){
+        cout << "name: " << it->name << " score: " << it->score << " age: "<<it->age<<endl;
     }
-
-    CTimer timer;
-    timer.reset();
-
-    float fSum = 0.0f;
-    int unTotal = 0;
-
-
-    for (int i = 0; i < unHeight; i++) {
-        for (int j = 0; j < unWidth; j++) {
-            for (int k = 0; k < unChannel; k++) {
-                for (int ii = i - unRadius; ii <= i + unRadius; ii++) {
-                    for (int jj = j - unRadius; jj <= j + unRadius; jj++) {
-                        if (ii >= 0 && jj >= 0 && ii < unHeight && jj < unWidth) {
-                            fSum += fx[k][jj][ii];
-                            unTotal++;
-                        }
-                    }
-                }
-                fy[k][j][i] =fSum/(float) unTotal;
-                unTotal = 0;
-                fSum = 0.0f;
-            }
-        }
+    vectorStudents.begin();
+    sort(vectorStudents.begin(), vectorStudents.end(), comp);
+    //sort(setStudents.begin(), setStudents.end());
+    cout << "===========排序后================" << endl;
+    for (vector<student>::iterator it = vectorStudents.begin(); it != vectorStudents.end(); it++){
+        cout << "name: " << it->name << " score: " << it->score << " age: " << it->age << endl;
     }
-
-    long lTime = timer.getTime();
-    cout << "Time elapsed: " << lTime << " milliseconds." << endl;
-
-    cSystem.deallocate(fx);
-    cSystem.deallocate(fy);
-
-
-    return nState;
+    return 0;
 }

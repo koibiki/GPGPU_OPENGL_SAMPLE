@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
     unsigned unNoData = 4 * unSize;        //total number of Data
     pfInput = new float[unNoData];
     float *pfOutput = new float[unNoData];
-    for (unsigned i = 0; i < unNoData; i++) pfInput[i] = i + 1.234d;
+    for (unsigned i = 0; i < unNoData; i++) pfInput[i] = i * 0.001;
 
     for (int i = 0; i < unNoData; i++) {
         cout << "input:" << pfInput[i] << endl;
@@ -85,10 +85,10 @@ int main(int argc, char **argv) {
     createTextures();
 
     // clean the texture buffer (for security reasons)
-    char f_clean[] = "../test3/clean.frag";
-    textureParameters.shader_source = reader.textFileRead(f_clean);
-    initGLSL();
-    performComputation(xTexID);
+//    char f_clean[] = "../test3/clean.frag";
+//    textureParameters.shader_source = reader.textFileRead(f_clean);
+//    initGLSL();
+//    performComputation(xTexID);
 
     // perform computation
 //    char f_convolution[] = "../test3/passthrough.frag";

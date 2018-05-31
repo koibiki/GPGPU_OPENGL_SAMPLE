@@ -9,8 +9,8 @@
 #include "utils/CReader.h"
 #include "utils/CTimer.h"
 
-#define WIDTH 1024
-#define HEIGHT 1024
+#define WIDTH 16
+#define HEIGHT 16
 #define MASK_RADIUS 2       //掩膜半径
 
 using namespace std;
@@ -67,9 +67,13 @@ int main(int argc, char **argv) {
     //生成输入数据
     unsigned unNoData = 4 * unSize;
     pfInput = new float[unNoData];
+    pfOutput = new float[unNoData];
     for (unsigned i = 0; i < unNoData; i++) {
-        pfInput[i] = i;
+        pfInput[i] = i + 1.23;
+        std::cout << "input:" << pfInput[i] << endl;
     }
+
+
 
     //确定纹理参数
     textureParameters.texTarget = GL_TEXTURE_RECTANGLE_ARB;
@@ -95,13 +99,17 @@ int main(int argc, char **argv) {
     performComputation();
 
     //计算二位离散卷积
-    char f_convolution[] = "../test2/convolution.frag";
-    textureParameters.shader_source = reader.textFileRead(f_convolution);
-    initGLSL();
-    performComputation();
+//    char f_convolution[] = "../test2/convolution.frag";
+//    textureParameters.shader_source = reader.textFileRead(f_convolution);
+//    initGLSL();
+//    performComputation();
 
     //读回计算结果
     transferFromTexture(pfOutput);
+
+    for (unsigned i = 0; i < unNoData; i++) {
+        std::cout << "output:" << pfOutput[i] << endl;
+    }
 
     //清理工作
     glDetachShader(glslProgram, fragmentShader);
@@ -136,6 +144,7 @@ void initFBO(unsigned unWidth, unsigned unHeight) {
 
     //绑定屏幕外帧缓存 即避开窗口系统默认的渲染目标
     glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb);
+    glBindRenderbuffer()
 
     //设置一个1:1等大的纹理元 像素映射
     glMatrixMode(GL_PROJECTION);
@@ -170,7 +179,7 @@ void initGLSL() {
     glLinkProgram(glslProgram);
 
     //获得 uniform 变量的位置
-    radiusParam = glGetUniformLocation(glslProgram, "fRadius");
+//    radiusParam = glGetUniformLocation(glslProgram, "fRadius");
 }
 
 /*
@@ -218,7 +227,7 @@ void performComputation() {
     //将GL_TEXTURE0 设为当前纹理单元
     glActiveTexture(GL_TEXTURE0);
     //更新 uniform变量 将应用程序的fRadius的值传递给着色器内部
-    glUniform1f(radiusParam, fRadius);
+//    glUniform1f(radiusParam, fRadius);
 
     //线程同步 方便计时
     glFinish();
@@ -264,6 +273,7 @@ void transferFromTexture(float *data) {
  * */
 void transferToTexture(float *data, GLuint texID) {
     glBindTexture(textureParameters.texTarget, texID);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, textureParameters.texTarget, texID, 0);
     glTexSubImage2D(textureParameters.texTarget, 0, 0, 0, unWidth, unHeight, textureParameters.texFormat, GL_FLOAT,
                     data);
 }

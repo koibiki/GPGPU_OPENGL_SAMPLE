@@ -1,7 +1,6 @@
 #include <GL/glut.h>
-#include<opencv2/core/core.hpp>
-#include<opencv2/highgui/highgui.hpp>
-
+#include <cv.h>
+#include <opencv2/opencv.hpp>
 using namespace cv;
 
 int mWidth;
@@ -22,15 +21,14 @@ void display() {
 
 int main(int argc, char **argv) {
     //获取图像指针函数
-//    Mat I = imread("../test4/airplane.jpg");
-    Mat I = imread("../test4/sample.bmp");
+    Mat I = imread("../test6/2.jpg");
 
 
     int width = I.cols;
     int height = I.rows;
     mWidth = width;
     mHeight = height;
-
+    cvtColor(I, I, CV_BGR2GRAY);
     //OpenCV显示
     imshow("OpenCV", I);
     //图像翻转
