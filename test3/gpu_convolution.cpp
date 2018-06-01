@@ -66,13 +66,10 @@ int main(int argc, char **argv) {
     float *pfOutput = new float[unNoData];
     for (unsigned i = 0; i < unNoData; i++) pfInput[i] = i * 0.001;
 
-    for (int i = 0; i < unNoData; i++) {
-        cout << "input:" << pfInput[i] << endl;
-    }
 
     // create variables for GL
-    textureParameters.texTarget = GL_TEXTURE_RECTANGLE_ARB;
-    textureParameters.texInternalFormat = GL_RGBA32F_ARB;
+    textureParameters.texTarget = GL_TEXTURE_2D;
+    textureParameters.texInternalFormat = GL_RGBA32F;
     textureParameters.texFormat = GL_RGBA;
     CReader reader;
 
@@ -85,23 +82,32 @@ int main(int argc, char **argv) {
     createTextures();
 
     // clean the texture buffer (for security reasons)
-//    char f_clean[] = "../test3/clean.frag";
-//    textureParameters.shader_source = reader.textFileRead(f_clean);
-//    initGLSL();
-//    performComputation(xTexID);
+    char f_clean[] = "../test3/clean.frag";
+    textureParameters.shader_source = reader.textFileRead(f_clean);
+    initGLSL();
+    performComputation(yTexID);
+
+    initGLSL();
+    performComputation(yTexID);
 
     // perform computation
-//    char f_convolution[] = "../test3/passthrough.frag";
-//    textureParameters.shader_source = reader.textFileRead(f_convolution);
-//    initGLSL();
-//    performComputation();
+    char f_convolution[] = "../test3/passthrough.frag";
+    textureParameters.shader_source = reader.textFileRead(f_convolution);
+    initGLSL();
+    performComputation(yTexID);
+
+    initGLSL();
+    performComputation(yTexID);
+
+    initGLSL();
+    performComputation(yTexID);
 
 
     // get GPU results
     transferFromTexture(pfOutput);
 
     for (int i = 0; i < unNoData; i++) {
-        cout << "input:" << pfInput[i] << " output:" << pfOutput[i] << endl;
+        //cout << "input:" << pfInput[i] << " output:" << pfOutput[i] << endl;
     }
 
     // clean up

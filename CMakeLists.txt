@@ -12,7 +12,7 @@ find_package(GLEW REQUIRED)
 
 include_directories(./test6 ${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${GLEW_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 
-add_executable(gpgpu main.cpp utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp)
+#add_executable(gpgpu main.cpp utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp)
 
 #add_executable(gpgpu test0/test0_glsl.cpp utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp)
 
@@ -20,13 +20,7 @@ add_executable(gpgpu main.cpp utils/CTimer.cpp utils/CReader.cpp utils/CSystem.c
 
 #add_executable(gpgpu test1/read_write_texture.cpp utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp )
 
-#add_executable(gpgpu test2/gpu_convolution.cpp utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp)
-
-#add_executable(gpgpu test3/gpu_convolution.cpp utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp)
-
-#add_executable(gpgpu test4/reverse_image.cpp utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp)
-
-#add_executable(gpgpu utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp  test5/test.cpp)
+add_executable(gpgpu test3/gpu_convolution.cpp utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp)
 
 #add_executable(gpgpu utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp test6/test.cpp test6/shader.cpp)
 

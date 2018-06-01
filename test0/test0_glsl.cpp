@@ -71,7 +71,6 @@ void setShaders() {
     glLinkProgram(p);
     glUseProgram(p);
 
-
 }
 
 
