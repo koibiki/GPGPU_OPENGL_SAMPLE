@@ -37,10 +37,10 @@ int main(int argc, char **argv) {
         return EXIT_FAILURE;
     }
 //2、读取、创建shader程序，编译连接等
-    auto program_id = ShaderProgram("../test6/gl_texture.vert", "../test6/gl_texture.frag");
+    auto program_id = ShaderProgram("../read_pic/gl_texture.vert", "../read_pic/gl_texture.frag");
     glUseProgram(program_id);
 
-    cv::Mat mat = cv::imread("../test6/2.jpg");
+    cv::Mat mat = cv::imread("../read_pic/2.jpg");
     int i = mat.type();
     cv::imshow("OpenCV", mat);
 

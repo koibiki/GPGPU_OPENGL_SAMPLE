@@ -82,7 +82,7 @@ int main(int argc, char **argv) {
     createTextures();
 
     // clean the texture buffer (for security reasons)
-    char f_clean[] = "../test3/clean.frag";
+    char f_clean[] = "../2_gpgpu_sample/clean.frag";
     textureParameters.shader_source = reader.textFileRead(f_clean);
     initGLSL();
     performComputation(yTexID);
@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
     performComputation(yTexID);
 
     // perform computation
-    char f_convolution[] = "../test3/passthrough.frag";
+    char f_convolution[] = "../2_gpgpu_sample/passthrough.frag";
     textureParameters.shader_source = reader.textFileRead(f_convolution);
     initGLSL();
     performComputation(yTexID);

@@ -39,30 +39,22 @@ int main(int argc, char **argv) {
     //创建纹理对象并绑定
     GLuint tex;
     glGenTextures(1, &tex);
-//    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, tex);
     glBindTexture(GL_TEXTURE_2D, tex);
 
     //设置纹理参数
-//    glTexParameterf(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//    glTexParameterf(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//    glTexParameterf(GL_TEXTURE_RECTANGLE_ARB,GL_TEXTURE_WRAP_S, GL_CLAMP);
-//    glTexParameterf(GL_TEXTURE_RECTANGLE_ARB,GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
 
     //将纹理关联到FBO
-//    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,GL_TEXTURE_RECTANGLE_ARB,tex,0);
     glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, tex, 0);
 
 
     //将纹理数据类型定义为单精度浮点数
-//    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA32F_ARB, nWidth, nHeight,0,GL_RGBA, GL_FLOAT, 0);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA_FLOAT32_ATI, nWidth, nHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
 
     //将数据传至纹理缓存
-//    glTexSubImage2D(GL_TEXTURE_RECTANGLE_ARB,0,0,0,nWidth,nHeight,GL_RGBA,GL_FLOAT,pfInput);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, nWidth, nHeight, GL_RGBA, GL_FLOAT, pfInput);
 
     //读回

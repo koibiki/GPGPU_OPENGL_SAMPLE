@@ -10,6 +10,7 @@
 GLuint v, f, p;
 float lpos[4] = {1, 0.5, 1, 0};
 float a = 0;
+GLint time_id;
 
 void changeSize(int w, int h) {
     //
@@ -40,6 +41,7 @@ void renderScene() {
     glRotatef(a, 0, 1, 1);
     glutSolidTeapot(1);
     a += 0.1;
+    glUniform1f(time_id, a);
     glutSwapBuffers();
 }
 
@@ -49,8 +51,8 @@ void setShaders() {
     f = glCreateShader(GL_FRAGMENT_SHADER);
 
     CReader reader;
-    char vert_path[] = "../test0/passthrough.vert";
-    char frag_path[] = "../test0/passthrough.frag";
+    char vert_path[] = "../0_intruction/passthrough.vert";
+    char frag_path[] = "../0_intruction/uniform.frag";
     vs = reader.textFileRead(vert_path);
     fs = reader.textFileRead(frag_path);
 
@@ -65,12 +67,13 @@ void setShaders() {
     glCompileShader(v);
     glCompileShader(f);
 
-    p=glCreateProgram();
-    glAttachShader(p,v);
-    glAttachShader(p,f);
+    p = glCreateProgram();
+    glAttachShader(p, v);
+    glAttachShader(p, f);
     glLinkProgram(p);
     glUseProgram(p);
 
+    time_id = glGetUniformLocation(p, "v_time");
 }
 
 
