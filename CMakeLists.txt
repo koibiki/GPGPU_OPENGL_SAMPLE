@@ -24,6 +24,8 @@ include_directories(${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS} ${GLEW_INCLUDE_D
 
 #add_executable(gpgpu utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp read_pic/test.cpp read_pic/shader.cpp)
 
-add_executable(gpgpu 3_compute_shader/simplecompute.cpp utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp)
+#add_executable(gpgpu 3_compute_shader/simplecompute.cpp utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp)
+
+add_executable(gpgpu 4_convolution_compute/convolution_compute.cpp utils/CTimer.cpp utils/CReader.cpp utils/CSystem.cpp)
 
 target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES} ${GLUT_LIBRARY} ${GLEW_LIBRARY})

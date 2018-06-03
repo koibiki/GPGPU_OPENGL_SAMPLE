@@ -1,0 +1,247 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
+#include <GL/glew.h>
+#include <GL/glut.h>
+#include "utils/CReader.h"
+#include "utils/CTimer.h"
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+
+#define WIDTH    16    //data block width
+#define HEIGHT    16    //data block height
+
+using namespace std;
+using namespace cv;
+
+void initGLSL(GLenum type);
+
+void initFBO(unsigned unWidth, unsigned unHeight);
+
+void initGLUT(int argc, char **argv);
+
+void createTextures(void);
+
+void setupTexture(const GLuint texID);
+
+void performCompute(const GLuint inputTexID, const GLuint outputTexID);
+
+void transferFromTexture(float *data);
+
+void transferToTexture(float *data, GLuint texID);
+
+// 纹理标识
+GLuint outputTexID;
+GLuint intermediateTexID;
+GLuint inputTexID;
+
+// GLSL 变量
+GLuint glslProgram;
+GLuint fragmentShader;
+GLint outParam, inParam, radiusParam;
+
+// FBO 标识
+GLuint fb;
+
+// 提供GL环境
+GLuint glutWindowHandle;
+
+struct structTextureParameters {
+    GLenum texTarget;
+    GLenum texInternalFormat;
+    GLenum texFormat;
+    char *shader_source;
+} textureParameters;
+
+float *pfInput;            //输入数据
+unsigned unWidth = (unsigned) WIDTH;
+unsigned unHeight = (unsigned) HEIGHT;
+unsigned unSize = unWidth * unHeight;
+
+GLfloat v[500];
+
+int main(int argc, char **argv) {
+    int i;
+    // create test data
+    unsigned unNoData = 4 * unSize;        //total number of Data
+    pfInput = new float[unNoData];
+    float *pfOutput = new float[unNoData];
+    for (i = 0; i < unNoData; i++) pfInput[i] = i * 0.001f;
+    for (i = 0; i < 500; i++) {
+       v[i] = i;
+    }
+
+    // create variables for GL
+    textureParameters.texTarget = GL_TEXTURE_2D;
+    textureParameters.texInternalFormat = GL_RGBA32F;
+    textureParameters.texFormat = GL_RGBA;
+    CReader reader;
+
+    // 初始化 glut  glew
+    initGLUT(argc, argv);
+    glewInit();
+    // 初始化FBO
+    initFBO(unWidth, unHeight);
+
+    createTextures();
+
+    char c_convolution[] = "../4_convolution_compute/convolution.comp";
+    textureParameters.shader_source = reader.textFileRead(c_convolution);
+    initGLSL(GL_COMPUTE_SHADER);
+    performCompute(inputTexID, intermediateTexID);
+
+    performCompute(intermediateTexID, outputTexID);
+
+    // get GPU results
+    transferFromTexture(pfOutput);
+
+    for (int i = 0; i < unNoData; i++) {
+        cout << "input:" << pfInput[i] << " output:" << pfOutput[i] << endl;
+    }
+
+    // clean up
+    glDetachShader(glslProgram, fragmentShader);
+    glDeleteShader(fragmentShader);
+    glDeleteProgram(glslProgram);
+    glDeleteFramebuffersEXT(1, &fb);
+    glDeleteTextures(1, &inputTexID);
+    glDeleteTextures(1, &outputTexID);
+    glutDestroyWindow(glutWindowHandle);
+
+    // exit
+    delete pfInput;
+    delete pfOutput;
+    return EXIT_SUCCESS;
+}
+
+/**
+ * Set up GLUT. The window is created for a valid GL environment.
+ */
+void initGLUT(int argc, char **argv) {
+    glutInit(&argc, argv);
+    glutWindowHandle = glutCreateWindow("GPGPU Tutorial");
+}
+
+/**
+ * Off-screen Rendering.
+ */
+void initFBO(unsigned unWidth, unsigned unHeight) {
+    // create FBO (off-screen framebuffer)
+    glGenFramebuffersEXT(1, &fb);
+    // bind offscreen framebuffer (that is, skip the window-specific render target)
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb);
+    // viewport for 1:1 pixel=texture mapping
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0.0, unWidth, 0.0, unHeight);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glViewport(0, 0, unWidth, unHeight);
+}
+
+/**
+ * Set up the GLSL runtime and creates shader.
+ */
+void initGLSL(GLenum type) {
+    // create program object
+    glslProgram = glCreateProgram();
+    // create shader object (fragment shader)
+    fragmentShader = glCreateShader(type);
+    // set source for shader
+    const GLchar *source = textureParameters.shader_source;
+    glShaderSource(fragmentShader, 1, &source, NULL);
+    // compile shader
+    glCompileShader(fragmentShader);
+
+    // attach shader to program
+    glAttachShader(glslProgram, fragmentShader);
+    // link into full program, use fixed function vertex shader.
+    // you can also link a pass-through vertex shader.
+    glLinkProgram(glslProgram);
+
+}
+
+/**
+ * create textures and set proper viewport etc.
+ */
+void createTextures() {
+    // 创建两个纹理
+    // y 输出; x 输入.
+    glGenTextures(1, &outputTexID);
+    glGenTextures(1, &intermediateTexID);
+    glGenTextures(1, &inputTexID);
+    // set up textures
+    setupTexture(outputTexID);
+    setupTexture(intermediateTexID);
+    setupTexture(inputTexID);
+    transferToTexture(pfInput, inputTexID);
+    // set texenv mode
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+}
+
+/**
+ * Sets up a floating point texture with the NEAREST filtering.
+ */
+void setupTexture(const GLuint texID) {
+    // make active and bind
+    glBindTexture(textureParameters.texTarget, texID);
+    glTexStorage2D(GL_TEXTURE_2D, 8, GL_RGBA32F, 16, 16);
+    // turn off filtering and wrap modes
+    glTexParameteri(textureParameters.texTarget, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(textureParameters.texTarget, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(textureParameters.texTarget, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(textureParameters.texTarget, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    // define texture with floating point format
+    glTexImage2D(textureParameters.texTarget, 0, textureParameters.texInternalFormat, unWidth, unHeight, 0,
+                 textureParameters.texFormat, GL_FLOAT, nullptr);
+}
+
+void performCompute(const GLuint inputTexID, const GLuint outputTexID) {
+    // attach output texture to FBO
+    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, textureParameters.texTarget, outputTexID,
+                              0);
+
+    // enable GLSL program
+    glUseProgram(glslProgram);
+    // enable the read-only texture x
+    glActiveTexture(GL_TEXTURE0);
+    glUniform1fv(glGetUniformLocation(glslProgram, "v"), 500, v);
+
+    // Synchronize for the timing reason.
+    glFinish();
+
+    CTimer timer;
+    long lTime;
+    timer.reset();
+
+    glBindImageTexture(0, inputTexID, 0, GL_FALSE, 0, GL_READ_ONLY, GL_RGBA32F);
+    glBindImageTexture(1, outputTexID, 0, GL_FALSE, 0, GL_WRITE_ONLY, GL_RGBA32F);
+    glDispatchCompute(1, 1, 1);
+
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
+    glFinish();
+    lTime = timer.getTime();
+    cout << "Time elapsed: " << lTime << " ms." << endl;
+}
+
+/**
+ * Transfers data from currently texture to host memory.
+ */
+void transferFromTexture(float *data) {
+    glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+    glReadPixels(0, 0, unWidth, unHeight, textureParameters.texFormat, GL_FLOAT, data);
+}
+
+/**
+ * Transfers data to texture. Notice the difference between ATI and NVIDIA.
+ */
+void transferToTexture(float *data, GLuint texID) {
+    // 绑定 为帧缓存， 以后的着色器操作均会在此纹理上进行
+    glBindTexture(textureParameters.texTarget, texID);
+    glTexSubImage2D(textureParameters.texTarget, 0, 0, 0, unWidth, unHeight, textureParameters.texFormat, GL_FLOAT,
+                    data);
+    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, textureParameters.texTarget, texID, 0);
+
+}
