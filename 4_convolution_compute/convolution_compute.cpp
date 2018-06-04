@@ -38,7 +38,8 @@ GLuint inputTexID;
 // GLSL 变量
 GLuint glslProgram;
 GLuint fragmentShader;
-GLint outParam, inParam, radiusParam;
+
+GLenum type = GL_FLOAT;
 
 // FBO 标识
 GLuint fb;
@@ -127,16 +128,10 @@ void initGLUT(int argc, char **argv) {
  */
 void initFBO(unsigned unWidth, unsigned unHeight) {
     // create FBO (off-screen framebuffer)
-    glGenFramebuffersEXT(1, &fb);
+    glGenFramebuffers(1, &fb);
     // bind offscreen framebuffer (that is, skip the window-specific render target)
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb);
-    // viewport for 1:1 pixel=texture mapping
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0.0, unWidth, 0.0, unHeight);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glViewport(0, 0, unWidth, unHeight);
+    glBindFramebuffer(GL_FRAMEBUFFER, fb);
+
 }
 
 /**
@@ -149,7 +144,7 @@ void initGLSL(GLenum type) {
     fragmentShader = glCreateShader(type);
     // set source for shader
     const GLchar *source = textureParameters.shader_source;
-    glShaderSource(fragmentShader, 1, &source, NULL);
+    glShaderSource(fragmentShader, 1, &source, nullptr);
     // compile shader
     glCompileShader(fragmentShader);
 
@@ -174,6 +169,9 @@ void createTextures() {
     setupTexture(outputTexID);
     setupTexture(intermediateTexID);
     setupTexture(inputTexID);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureParameters.texTarget, inputTexID, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, textureParameters.texTarget, intermediateTexID, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, textureParameters.texTarget, outputTexID, 0);
     transferToTexture(pfInput, inputTexID);
     // set texenv mode
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -193,19 +191,16 @@ void setupTexture(const GLuint texID) {
     glTexParameteri(textureParameters.texTarget, GL_TEXTURE_WRAP_T, GL_CLAMP);
     // define texture with floating point format
     glTexImage2D(textureParameters.texTarget, 0, textureParameters.texInternalFormat, unWidth, unHeight, 0,
-                 textureParameters.texFormat, GL_FLOAT, nullptr);
+                 textureParameters.texFormat, type, nullptr);
 }
 
 void performCompute(const GLuint inputTexID, const GLuint outputTexID) {
-    // attach output texture to FBO
-    glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, fb);
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, textureParameters.texTarget, outputTexID,
-                              0);
+
 
     // enable GLSL program
     glUseProgram(glslProgram);
     // enable the read-only texture x
-    glActiveTexture(GL_TEXTURE0);
+    //glActiveTexture(GL_TEXTURE0);
     glUniform1fv(glGetUniformLocation(glslProgram, "v"), 500, v);
 
     // Synchronize for the timing reason.
@@ -230,8 +225,8 @@ void performCompute(const GLuint inputTexID, const GLuint outputTexID) {
  * Transfers data from currently texture to host memory.
  */
 void transferFromTexture(float *data) {
-    glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-    glReadPixels(0, 0, unWidth, unHeight, textureParameters.texFormat, GL_FLOAT, data);
+    glReadBuffer(GL_COLOR_ATTACHMENT2);
+    glReadPixels(0, 0, unWidth, unHeight, textureParameters.texFormat, type, data);
 }
 
 /**
@@ -240,8 +235,5 @@ void transferFromTexture(float *data) {
 void transferToTexture(float *data, GLuint texID) {
     // 绑定 为帧缓存， 以后的着色器操作均会在此纹理上进行
     glBindTexture(textureParameters.texTarget, texID);
-    glTexSubImage2D(textureParameters.texTarget, 0, 0, 0, unWidth, unHeight, textureParameters.texFormat, GL_FLOAT,
-                    data);
-    glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, textureParameters.texTarget, texID, 0);
-
+    glTexSubImage2D(textureParameters.texTarget, 0, 0, 0, unWidth, unHeight, textureParameters.texFormat, type, data);
 }
